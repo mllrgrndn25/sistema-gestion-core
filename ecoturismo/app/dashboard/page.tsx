@@ -1,94 +1,110 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { motion } from "framer-motion";
+import { motion, Variants } from "framer-motion";
+import { theme } from "@/lib/theme";
 
 export default function DashboardPage() {
   const [perfil, setPerfil] = useState("");
-  const theme = {
-    bg: "#0f0e17", // Fondo más profundo
-    headline: "#fffffe",
-    paragraph: "#a7a9be",
-    button: "#ff8906", // Naranja vibrante para resaltar
-    stroke: "#2e2f3e",
-    cardBg: "rgba(255, 255, 255, 0.03)"
-  };
 
   useEffect(() => {
     setPerfil(localStorage.getItem("perfil") || "Usuario");
   }, []);
 
   const modulos = [
-    { title: "Personas", desc: "Gestión de datos y registros", link: "/persona", icon: "👤", color: "#3da9fc", admin: false },
-    { title: "Perfiles", desc: "Roles y privilegios", link: "/perfil", icon: "🛡️", color: "#ef4565", admin: true },
-    { title: "Usuarios", desc: "Cuentas y seguridad", link: "/usuario", icon: "🔑", color: "#7f5af0", admin: true },
+    { title: "Personas", desc: "Gestión de empleados, clientes y proveedores", link: "/persona", icon: "👤", color: theme.accent },
+    { title: "Perfiles", desc: "Roles y privilegios del sistema", link: "/perfil", icon: "🛡️", color: theme.primary, admin: true },
+    { title: "Usuarios", desc: "Cuentas y acceso al sistema", link: "/usuario", icon: "🔑", color: "#42a5f5", admin: true },
   ].filter(m => !m.admin || perfil === "Administrador");
 
-  // Animaciones
-  const container = {
+  const container: Variants = {
     hidden: { opacity: 0 },
-    show: { opacity: 1, transition: { staggerChildren: 0.15 } }
+    show: { opacity: 1, transition: { staggerChildren: 0.15 } },
   };
 
-  const item = {
-    hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 100 } }
+  const item: Variants = {
+    hidden: { y: 25, opacity: 0 },
+    show: { y: 0, opacity: 1, transition: { type: "spring", stiffness: 90 } },
   };
 
   return (
-    <div style={{ backgroundColor: theme.bg, minHeight: '100vh', padding: '5rem 2rem', fontFamily: 'Inter, system-ui, sans-serif' }}>
-      <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-        
-        <motion.header 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          style={{ textAlign: 'center', marginBottom: '5rem' }}
+    <div style={{
+      backgroundColor: theme.bg,
+      minHeight: "100vh",
+      padding: "4rem 2rem",
+      fontFamily: "Inter, system-ui, sans-serif",
+      backgroundImage: "radial-gradient(ellipse at 10% 20%, #1a3521 0%, transparent 50%), radial-gradient(ellipse at 90% 80%, #0f2d14 0%, transparent 50%)",
+    }}>
+      <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
+
+        {/* Header */}
+        <motion.header
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={{ textAlign: "center", marginBottom: "5rem" }}
         >
-          <span style={{ color: theme.button, fontWeight: 'bold', letterSpacing: '3px', fontSize: '0.8rem' }}>DASHBOARD CENTRAL</span>
-          <h1 style={{ color: theme.headline, fontSize: '3.5rem', fontWeight: '900', margin: '10px 0' }}>
-            Bienvenido, <span style={{ color: theme.button }}>{perfil}</span>
+          <div style={{ fontSize: "3.5rem", marginBottom: "1rem" }}>🌿</div>
+          <span style={{ color: theme.primary, fontWeight: "bold", letterSpacing: "3px", fontSize: "0.75rem" }}>
+            ECOCORE — PANEL CENTRAL
+          </span>
+          <h1 style={{ color: theme.headline, fontSize: "3rem", fontWeight: "900", margin: "0.5rem 0" }}>
+            Bienvenido, <span style={{ color: theme.accent }}>{perfil}</span>
           </h1>
-          <div style={{ width: '60px', h: '4px', background: theme.button, margin: '20px auto', borderRadius: '10px' }} />
+          <p style={{ color: theme.paragraph, fontSize: "0.9rem" }}>
+            Selecciona un módulo para continuar
+          </p>
+          <div style={{ width: "60px", height: "3px", background: theme.primary, margin: "1.5rem auto 0", borderRadius: "10px" }} />
         </motion.header>
 
-        <motion.div 
+        {/* Módulos */}
+        <motion.div
           variants={container}
           initial="hidden"
           animate="show"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '2rem' }}
+          style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "2rem" }}
         >
           {modulos.map((m, i) => (
-            <Link href={m.link} key={i} style={{ textDecoration: 'none' }}>
-              <motion.div 
+            <Link href={m.link} key={i} style={{ textDecoration: "none" }}>
+              <motion.div
                 variants={item}
-                whileHover={{ y: -12, backgroundColor: "rgba(255,255,255,0.06)", borderColor: m.color }}
-                style={{ 
-                  backgroundColor: theme.cardBg, 
-                  padding: '3rem 2rem', 
-                  borderRadius: '24px', 
+                whileHover={{ y: -10, borderColor: m.color, backgroundColor: theme.surface2 }}
+                style={{
+                  backgroundColor: theme.surface,
+                  padding: "2.5rem 2rem",
+                  borderRadius: "20px",
                   border: `1px solid ${theme.stroke}`,
-                  transition: 'all 0.3s ease',
-                  position: 'relative',
-                  overflow: 'hidden'
+                  transition: "all 0.3s ease",
+                  cursor: "pointer",
                 }}
               >
-                <div style={{ fontSize: '3rem', marginBottom: '1.5rem' }}>{m.icon}</div>
-                <h3 style={{ color: theme.headline, fontSize: '1.5rem', marginBottom: '0.5rem' }}>{m.title}</h3>
-                <p style={{ color: theme.paragraph, lineHeight: '1.6', fontSize: '0.9rem' }}>{m.desc}</p>
-                <div style={{ marginTop: '2rem', height: '2px', width: '30%', background: m.color }} />
+                <div style={{ fontSize: "2.8rem", marginBottom: "1.2rem" }}>{m.icon}</div>
+                <h3 style={{ color: theme.headline, fontSize: "1.4rem", margin: "0 0 0.5rem" }}>{m.title}</h3>
+                <p style={{ color: theme.paragraph, fontSize: "0.88rem", lineHeight: "1.6", margin: 0 }}>{m.desc}</p>
+                <div style={{ marginTop: "1.8rem", height: "3px", width: "35%", background: m.color, borderRadius: "10px" }} />
               </motion.div>
             </Link>
           ))}
         </motion.div>
 
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1 }} style={{ textAlign: 'center', marginTop: '6rem' }}>
-          <button 
-            onClick={() => { localStorage.clear(); window.location.href="/"; }}
-            style={{ background: 'none', border: `1px solid ${theme.stroke}`, color: theme.paragraph, padding: '12px 30px', borderRadius: '50px', cursor: 'pointer', fontSize: '0.8rem', fontWeight: '600', transition: '0.3s' }}
-            onMouseOver={(e) => e.currentTarget.style.borderColor = theme.button}
+        {/* Cerrar sesión */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.8 }}
+          style={{ textAlign: "center", marginTop: "5rem" }}
+        >
+          <button
+            onClick={() => { localStorage.clear(); window.location.href = "/"; }}
+            style={{
+              background: "none", border: `1px solid ${theme.stroke}`,
+              color: theme.paragraph, padding: "12px 32px",
+              borderRadius: "50px", cursor: "pointer",
+              fontSize: "0.8rem", fontWeight: "600", transition: "0.3s",
+            }}
+            onMouseOver={(e) => e.currentTarget.style.borderColor = theme.primary}
             onMouseOut={(e) => e.currentTarget.style.borderColor = theme.stroke}
           >
-            CERRAR SESIÓN SEGURA
+            🌱 CERRAR SESIÓN
           </button>
         </motion.div>
       </div>
