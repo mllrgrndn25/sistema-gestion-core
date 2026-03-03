@@ -14,16 +14,21 @@ interface Persona {
   correo: string;
   movil: string;
   direccion: string;
-  tipo: string;
+  id_tipo: number | null;
+  tipo_persona?: { nombretp: string };
   estado: boolean;
 }
 
-const TIPOS = ["Empleado", "Cliente", "Director", "Proveedor"];
+interface TipoPersona {
+  codigotp: number;
+  nombretp: string;
+}
 
-const formVacio = { nom1: "", nom2: "", apell1: "", apell2: "", correo: "", movil: "", direccion: "", tipo: "" };
+const formVacio = { nom1: "", nom2: "", apell1: "", apell2: "", correo: "", movil: "", direccion: "", id_tipo: "" as any };
 
 export default function PersonaPage() {
   const [personas, setPersonas] = useState<Persona[]>([]);
+  const [tiposPersona, setTiposPersona] = useState<TipoPersona[]>([]);
   const [perfil, setPerfil] = useState("");
   const [cargando, setCargando] = useState(true);
   const [form, setForm] = useState(formVacio);
@@ -31,38 +36,46 @@ export default function PersonaPage() {
 
   useEffect(() => {
     setPerfil(localStorage.getItem("perfil") || "");
-    cargarPersonas();
+    cargarDatos();
   }, []);
 
-  const cargarPersonas = async () => {
+  const cargarDatos = async () => {
     setCargando(true);
-    const { data } = await supabase
-      .from("persona").select("*").eq("estado", true).order("idpersona", { ascending: false });
-    if (data) setPersonas(data);
+    // Cargar Tipos
+    const { data: tData } = await supabase.from("tipo_persona").select("codigotp, nombretp").eq("estado", true);
+    if (tData) setTiposPersona(tData);
+
+    // Cargar Personas con JOIN a tipo_persona
+    const { data: pData } = await supabase
+      .from("persona")
+      .select("*, tipo_persona(nombretp)")
+      .eq("estado", true)
+      .order("idpersona", { ascending: false });
+
+    if (pData) setPersonas(pData);
     setCargando(false);
   };
 
-  // CREATE / UPDATE
   const handleGuardar = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.tipo) return alert("Por favor, seleccione el tipo de persona.");
+    if (!form.id_tipo) return alert("Por favor, seleccione el tipo de persona.");
+
+    const payload = { ...form, id_tipo: parseInt(form.id_tipo) };
 
     if (editandoId !== null) {
-      // UPDATE
-      const { error } = await supabase.from("persona").update({ ...form }).eq("idpersona", editandoId);
+      const { error } = await supabase.from("persona").update(payload).eq("idpersona", editandoId);
       if (error) alert("Error al actualizar: " + error.message);
       else {
         setForm(formVacio);
         setEditandoId(null);
-        cargarPersonas();
+        cargarDatos();
       }
     } else {
-      // INSERT
-      const { error } = await supabase.from("persona").insert([{ ...form, estado: true }]);
+      const { error } = await supabase.from("persona").insert([{ ...payload, estado: true }]);
       if (error) alert("Error al registrar: " + error.message);
       else {
         setForm(formVacio);
-        cargarPersonas();
+        cargarDatos();
       }
     }
   };
@@ -71,7 +84,7 @@ export default function PersonaPage() {
     setEditandoId(p.idpersona);
     setForm({
       nom1: p.nom1, nom2: p.nom2 || "", apell1: p.apell1, apell2: p.apell2 || "",
-      correo: p.correo, movil: p.movil || "", direccion: p.direccion || "", tipo: p.tipo,
+      correo: p.correo, movil: p.movil || "", direccion: p.direccion || "", id_tipo: p.id_tipo || "",
     });
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
@@ -81,24 +94,23 @@ export default function PersonaPage() {
     setForm(formVacio);
   };
 
-  // DELETE lógico
   const handleInhabilitar = async (id: number) => {
     if (perfil !== "Administrador") {
       return alert("Acceso Denegado: Solo el Administrador puede inhabilitar registros.");
     }
     if (!confirm("¿Está seguro de inhabilitar esta persona? Se desactivará del sistema.")) return;
     const { error } = await supabase.from("persona").update({ estado: false }).eq("idpersona", id);
-    if (!error) cargarPersonas();
+    if (!error) cargarDatos();
   };
 
-  const badgeColor = (tipo: string) => {
+  const badgeColor = (tipoNombre?: string) => {
     const c: Record<string, string> = {
-      Director: theme.accent,
-      Cliente: "#4caf50",
-      Empleado: "#42a5f5",
-      Proveedor: "#ab47bc",
+      Estudiante: "#4caf50",
+      Docente: "#42a5f5",
+      Psicólogo: theme.accent,
+      Administrador: "#ef5350",
     };
-    return c[tipo] || theme.paragraph;
+    return c[tipoNombre || ""] || theme.paragraph;
   };
 
   return (
@@ -125,7 +137,7 @@ export default function PersonaPage() {
               Gestión de <span style={{ color: theme.accent }}>Personas</span>
             </h1>
             <p style={{ color: theme.paragraph, fontSize: "0.85rem", marginTop: "4px" }}>
-              Registro categorizado de personal, clientes y proveedores
+              Registro categorizado de personal, estudiantes y colaboradores
             </p>
           </div>
           <Link href="/dashboard" style={{
@@ -190,16 +202,16 @@ export default function PersonaPage() {
                 </label>
                 <select
                   required
-                  value={form.tipo}
-                  onChange={e => setForm({ ...form, tipo: e.target.value })}
+                  value={form.id_tipo}
+                  onChange={e => setForm({ ...form, id_tipo: e.target.value })}
                   style={{
                     width: "100%", padding: "0.9rem", backgroundColor: theme.inputBg,
-                    border: `1px solid ${theme.stroke}`, color: form.tipo ? theme.headline : theme.paragraph,
+                    border: `1px solid ${theme.stroke}`, color: form.id_tipo ? theme.headline : theme.paragraph,
                     borderRadius: "12px", outline: "none", fontSize: "0.9rem", boxSizing: "border-box",
                   }}
                 >
                   <option value="">Seleccione tipo...</option>
-                  {TIPOS.map(t => <option key={t} value={t}>{t}</option>)}
+                  {tiposPersona.map(t => <option key={t.codigotp} value={t.codigotp}>{t.nombretp}</option>)}
                 </select>
               </div>
             </div>
@@ -281,11 +293,11 @@ export default function PersonaPage() {
                         <td style={{ padding: "1.2rem 1.5rem" }}>
                           <span style={{
                             padding: "4px 12px", borderRadius: "20px", fontSize: "0.75rem", fontWeight: "bold",
-                            backgroundColor: `${badgeColor(p.tipo)}22`,
-                            color: badgeColor(p.tipo),
-                            border: `1px solid ${badgeColor(p.tipo)}44`,
+                            backgroundColor: `${badgeColor(p.tipo_persona?.nombretp)}22`,
+                            color: badgeColor(p.tipo_persona?.nombretp),
+                            border: `1px solid ${badgeColor(p.tipo_persona?.nombretp)}44`,
                           }}>
-                            {p.tipo || "Sin Tipo"}
+                            {p.tipo_persona?.nombretp || "Sin Tipo"}
                           </span>
                         </td>
                         <td style={{ padding: "1.2rem 1.5rem", color: theme.paragraph, fontSize: "0.9rem" }}>

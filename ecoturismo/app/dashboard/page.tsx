@@ -12,8 +12,12 @@ export default function DashboardPage() {
   }, []);
 
   const modulos = [
-    { title: "Personas", desc: "Gestión de empleados, clientes y proveedores", link: "/persona", icon: "👤", color: theme.accent },
-    { title: "Perfiles", desc: "Roles y privilegios del sistema", link: "/perfil", icon: "🛡️", color: theme.primary, admin: true },
+    { title: "Perfil", desc: "Gestión de roles y permisos", link: "/perfil", icon: "👤", color: theme.primary, admin: true },
+    { title: "Persona", desc: "Registro de personal y estudiantes", link: "/persona", icon: "👥", color: theme.accent },
+    { title: "Tipos", desc: "Categorías de personas", link: "/tipo-persona", icon: "🏷", color: "#66bb6a", admin: true },
+    { title: "Tests", desc: "Diseño de tests emocionales", link: "/test", icon: "📝", color: "#ffa726", admin: true },
+    { title: "Aplicar", desc: "Realizar evaluación emocional", link: "/aplicar-test", icon: "🧠", color: "#ffb74d" },
+    { title: "Informes", desc: "Resultados y estadísticas", link: "/informes", icon: "📊", color: "#ffcc80" },
     { title: "Usuarios", desc: "Cuentas y acceso al sistema", link: "/usuario", icon: "🔑", color: "#42a5f5", admin: true },
   ].filter(m => !m.admin || perfil === "Administrador");
 
